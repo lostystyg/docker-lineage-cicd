@@ -142,6 +142,12 @@ for branch in ${BRANCH_NAME//,/ }; do
         frameworks_base_patch="android_frameworks_base-Android13.patch"
         modules_permission_patch="packages_modules_Permission-Android13.patch"
         ;;
+      bastyon-1.0*)
+        themuppets_branch="lineage-20.0"
+        android_version="13"
+        frameworks_base_patch="android_frameworks_base-Android13.patch"
+        modules_permission_patch="packages_modules_Permission-Android13.patch"
+        ;;
       *)
         echo ">> [$(date)] Building branch $branch is not (yet) suppported"
         exit 1
@@ -169,9 +175,11 @@ for branch in ${BRANCH_NAME//,/ }; do
 
     echo ">> [$(date)] (Re)initializing branch repository" | tee -a "$repo_log"
     if [ "$LOCAL_MIRROR" = true ]; then
-      ( yes||: ) | repo init -u https://github.com/LineageOS/android.git --reference "$MIRROR_DIR" -b "$branch" --git-lfs &>> "$repo_log"
+      # TODO (bastyon): update url
+      ( yes||: ) | repo init -u https://github.com/lostystyg/android_manifest.git --reference "$MIRROR_DIR" -b "$branch" --git-lfs &>> "$repo_log"
     else
-      ( yes||: ) | repo init -u https://github.com/LineageOS/android.git -b "$branch" --git-lfs &>> "$repo_log"
+      # TODO (bastyon): update url
+      ( yes||: ) | repo init -u https://github.com/lostystyg/android_manifest.git -b "$branch" --git-lfs &>> "$repo_log"
     fi
 
     # Copy local manifests to the appropriate folder in order take them into consideration
@@ -324,7 +332,7 @@ for branch in ${BRANCH_NAME//,/ }; do
           logsubdir=
         fi
 
-        DEBUG_LOG="$LOGS_DIR/$logsubdir/lineage-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
+        DEBUG_LOG="$LOGS_DIR/$logsubdir/bastyon-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
 
         set +eu
         breakfast "$codename" "$BUILD_TYPE" &>> "$DEBUG_LOG"
@@ -349,14 +357,14 @@ for branch in ${BRANCH_NAME//,/ }; do
           echo ">> [$(date)] Moving build artifacts for $codename to '$ZIP_DIR/$zipsubdir'" | tee -a "$DEBUG_LOG"
           cd out/target/product/"$codename"
           files_to_hash=()
-          for build in lineage-*.zip; do
+          for build in bastyon-*.zip; do
             cp -v system/build.prop "$ZIP_DIR/$zipsubdir/$build.prop" &>> "$DEBUG_LOG"
             mv "$build" "$ZIP_DIR/$zipsubdir/" &>> "$DEBUG_LOG"
             files_to_hash+=( "$build" )
           done
           for image in recovery boot vendor_boot; do
             if [ -f "$image.img" ]; then
-              recovery_name="lineage-$los_ver-$builddate-$RELEASE_TYPE-$codename-$image.img"
+              recovery_name="bastyon-$los_ver-$builddate-$RELEASE_TYPE-$codename-$image.img"
               cp "$image.img" "$ZIP_DIR/$zipsubdir/$recovery_name" &>> "$DEBUG_LOG"
               files_to_hash+=( "$recovery_name" )
             fi
