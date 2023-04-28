@@ -1,6 +1,8 @@
 FROM ubuntu:22.04@sha256:9dc05cf19a5745c33b9327dba850480dae80310972dea9b05052162e7c7f2763
 LABEL maintainer="Nicola Corna <nicola@corna.info>"
 
+# TODO (bastyon): consider using debian and remove openjdk installation because it is included with lineage sources
+
 # Environment variables
 #######################
 
