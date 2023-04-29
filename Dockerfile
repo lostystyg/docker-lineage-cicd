@@ -13,6 +13,7 @@ ENV LMANIFEST_DIR /srv/local_manifests
 ENV KEYS_DIR /srv/keys
 ENV LOGS_DIR /srv/logs
 ENV USERSCRIPTS_DIR /srv/userscripts
+ENV SYSTEM_DUMP /srv/system_dump
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV USER root
@@ -133,6 +134,7 @@ VOLUME $LMANIFEST_DIR
 VOLUME $KEYS_DIR
 VOLUME $LOGS_DIR
 VOLUME $USERSCRIPTS_DIR
+VOLUME $SYSTEM_DUMP
 
 # Create missing directories
 ############################

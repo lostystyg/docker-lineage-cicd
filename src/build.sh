@@ -19,6 +19,13 @@
 
 set -eEuo pipefail
 
+function _try_breakfast {
+    set +eu
+    breakfast "$codename" "$BUILD_TYPE" &>> "$DEBUG_LOG"
+    breakfast_returncode=$?
+    set -eu
+}
+
 repo_log="$LOGS_DIR/repo-$(date +%Y%m%d).log"
 
 # cd to working directory
@@ -90,6 +97,16 @@ if [ "$LOCAL_MIRROR" = true ]; then
 
   echo ">> [$(date)] Syncing mirror repository" | tee -a "$repo_log"
   repo sync "${jobs_arg[@]}" --force-sync --no-clone-bundle &>> "$repo_log"
+fi
+
+# TODO (bastyon): workaround to not overkill with system_dumps
+branch_counter=0
+for branch in ${BRANCH_NAME//,/ }; do
+    branch_counter=$((branch_counter+1))
+done
+if [ $branch_counter -ne 1 ]; then
+    echo ">> [$(date)] Only one branch supported for now!" | tee -a "$repo_log"
+    exit 1
 fi
 
 for branch in ${BRANCH_NAME//,/ }; do
@@ -334,13 +351,38 @@ for branch in ${BRANCH_NAME//,/ }; do
 
         DEBUG_LOG="$LOGS_DIR/$logsubdir/bastyon-$los_ver-$builddate-$RELEASE_TYPE-$codename.log"
 
-        set +eu
-        breakfast "$codename" "$BUILD_TYPE" &>> "$DEBUG_LOG"
-        breakfast_returncode=$?
-        set -eu
+        _try_breakfast
+
+        breakfast_overall_res=false
         if [ $breakfast_returncode -ne 0 ]; then
+            systemdump_device_path="$SYSTEM_DUMP/$codename/system"
+            echo ">> [$(date)] breakfast failed, trying extract proprietary files from $systemdump_device_path" | tee -a "$DEBUG_LOG"
+            if [ -n "$(ls -A "$systemdump_device_path")" ]; then
+                echo ">> [$(date)] Finded system_dump, trying to extract" | tee -a "$DEBUG_LOG"
+                cd device/*/$codename/
+                ./extract-files.sh "$systemdump_device_path" &>> "$DEBUG_LOG"
+                extract_files_returncode=$?
+                cd -
+                if [ $extract_files_returncode -eq 0 ]; then
+                    _try_breakfast
+                    if [ $breakfast_returncode -eq 0 ]; then
+                        breakfast_overall_res=true
+                    fi
+                else
+                    echo ">>[$(date)] Failed to extract files for $codename"
+                fi
+            else
+                echo ">> [$(date)] The requested dirctory $systemdump_device_path not exists or empty" | tee -a "$DEBUG_LOG"
+            fi
+        else
+            breakfast_overall_res=true
+        fi
+
+        if ! $breakfast_overall_res ; then
             echo ">> [$(date)] breakfast failed for $codename, $branch branch" | tee -a "$DEBUG_LOG"
             continue
+        else
+            echo ">> [$(date)] breakfast succeed for $codename, $branch branch" | tee -a "$DEBUG_LOG"
         fi
 
         if [ -f /root/userscripts/pre-build.sh ]; then
