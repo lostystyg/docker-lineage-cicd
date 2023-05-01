@@ -1,4 +1,4 @@
-FROM ubuntu:22.04@sha256:9dc05cf19a5745c33b9327dba850480dae80310972dea9b05052162e7c7f2763
+FROM debian:latest
 LABEL maintainer="Nicola Corna <nicola@corna.info>"
 
 # Environment variables
@@ -148,7 +148,7 @@ RUN apt-get -qq update && \
       cron curl flex g++-multilib gcc-multilib git git-lfs gnupg gperf imagemagick \
       kmod lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool \
       libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 \
-      libxml2-utils lsof lzop maven openjdk-8-jdk pngcrush procps python3 \
+      libxml2-utils lsof lzop maven pngcrush procps python3 \
       python-is-python3 rsync schedtool squashfs-tools wget xdelta3 xsltproc yasm zip \
       zlib1g-dev \
       && rm -rf /var/lib/apt/lists/*
@@ -159,7 +159,7 @@ RUN curl https://storage.googleapis.com/git-repo-downloads/repo > /usr/local/bin
 # Re-enable TLSv1 and TLSv1.1 in OpenJDK 8 config
 #(for cm-14.1/lineage-15.1, might be removed later)
 ###################################################
-RUN echo "jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves" | tee -a /etc/java-8-openjdk/security/java.security
+# RUN echo "jdk.tls.disabledAlgorithms=SSLv3, RC4, DES, MD5withRSA, DH keySize < 1024, EC keySize < 224, 3DES_EDE_CBC, anon, NULL, include jdk.disabled.namedCurves" | tee -a /etc/java-8-openjdk/security/java.security
 
 # Copy required files
 #####################
